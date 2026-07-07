@@ -47,7 +47,8 @@
   <div class="meta" id="meta">불러오는 중…</div>
 </header>
 <div class="bar">
-  <input id="q" placeholder="종목·계약내용·상대 검색">
+  <select id="day"></select>
+  <input id="q" placeholder="종목·계약내용·상대 검색 (전체 날짜)">
   <select id="sort">
     <option value="pub_date">최신순</option>
     <option value="amount">금액순</option>
@@ -75,14 +76,17 @@
 </footer>
 <script>
 let DATA=[], sortKey='pub_date', dir=-1;
-const tb=document.getElementById('tb'), q=document.getElementById('q'), sortSel=document.getElementById('sort');
+const tb=document.getElementById('tb'), q=document.getElementById('q'), sortSel=document.getElementById('sort'), daySel=document.getElementById('day');
 
 function ratioColor(r){ if(r==null) return 'var(--sub)'; if(r>=100) return 'var(--up)'; if(r>=30) return 'var(--accent)'; return 'var(--sub)'; }
 function esc(s){ return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
 function render(){
   const term=q.value.trim().toLowerCase();
-  let rows=DATA.filter(d=>!term || (d.corp_name+d.content+d.party).toLowerCase().includes(term));
+  // 검색어가 있으면 전체 날짜에서, 없으면 선택 날짜만
+  let rows = term
+    ? DATA.filter(d=>(d.corp_name+d.content+d.party).toLowerCase().includes(term))
+    : DATA.filter(d=>d.pub_date===daySel.value);
   rows.sort((a,b)=>{
     let av=a[sortKey], bv=b[sortKey];
     if(sortKey==='corp_name'||sortKey==='content'||sortKey==='party'){ av=av||''; bv=bv||''; return dir*(av<bv?-1:av>bv?1:0); }
@@ -108,11 +112,14 @@ document.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{
   render();
 });
 sortSel.onchange=()=>{ sortKey=sortSel.value; dir=-1; render(); };
+daySel.onchange=render;
 q.oninput=render;
 
 fetch('data/contracts.json?_='+Date.now()).then(r=>r.json()).then(j=>{
   DATA=j.items;
-  document.getElementById('meta').textContent=`최근 ${j.days}일 · ${j.count}건 · ${j.updated_at} 기준`;
+  const days=[...new Set(DATA.map(d=>d.pub_date))].sort().reverse();
+  daySel.innerHTML=days.map(d=>`<option value="${d}">${d} (${DATA.filter(x=>x.pub_date===d).length})</option>`).join('');
+  document.getElementById('meta').textContent=`최근 ${j.days}일 · ${j.count}건 · ${j.updated_at} 기준 · 날짜 선택 또는 검색`;
   render();
 }).catch(e=>{ tb.innerHTML='<tr><td class="empty" colspan="8">데이터 로드 실패</td></tr>'; });
 </script>
