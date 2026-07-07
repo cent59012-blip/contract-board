@@ -56,11 +56,26 @@
   <select id="sort"></select>
 </div>
 <div class="wrap"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div>
+<div class="wrap" id="ad-slot" style="min-height:0"></div>
 <footer>
   데이터 출처: 금융감독원 DART 전자공시(공개정보). 투자 참고용이며 정확성을 보장하지 않습니다.<br>
   매출대비 = 계약/투자금액 ÷ 최근 매출액. 실적은 연결(연결재무제표) 우선 표시. 정정·취소가 반영되지 않을 수 있습니다.
 </footer>
 <script>
+/* ── 광고 설정 ── 애드센스 승인 후 아래 2개만 채우면 자동으로 광고가 뜹니다.
+   ADSENSE_PUB : 애드센스 게시자 ID (예: 'ca-pub-1234567890123456')
+   ADSENSE_SLOT: 광고 단위 슬롯 ID (예: '1234567890')  */
+const ADSENSE_PUB = '';
+const ADSENSE_SLOT = '';
+if (ADSENSE_PUB) {
+  const s=document.createElement('script'); s.async=true; s.crossOrigin='anonymous';
+  s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client='+ADSENSE_PUB;
+  document.head.appendChild(s);
+  document.getElementById('ad-slot').innerHTML=
+    `<ins class="adsbygoogle" style="display:block" data-ad-client="${ADSENSE_PUB}" data-ad-slot="${ADSENSE_SLOT}" data-ad-format="auto" data-full-width-responsive="true"></ins>`;
+  (window.adsbygoogle=window.adsbygoogle||[]).push({});
+}
+
 const CFG = {
   contracts: {
     label:'수주·공급계약',
