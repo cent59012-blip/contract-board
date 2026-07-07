@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>수주·공급계약 보드</title>
+<style>
+  :root{
+    --bg:#0f172a; --card:#1e293b; --line:#334155; --txt:#e2e8f0; --sub:#94a3b8;
+    --up:#f43f5e; --accent:#38bdf8; --chip:#0ea5e9;
+  }
+  @media (prefers-color-scheme: light){
+    :root{ --bg:#f8fafc; --card:#fff; --line:#e2e8f0; --txt:#0f172a; --sub:#64748b; --up:#e11d48; --accent:#0284c7; --chip:#0284c7;}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"Malgun Gothic","Apple SD Gothic Neo",sans-serif;background:var(--bg);color:var(--txt);}
+  header{padding:20px 16px 8px;max-width:1100px;margin:0 auto;}
+  h1{margin:0;font-size:22px;font-weight:800;letter-spacing:-.5px}
+  .meta{color:var(--sub);font-size:13px;margin-top:4px}
+  .bar{max-width:1100px;margin:12px auto 0;padding:0 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  input,select{background:var(--card);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:9px 12px;font-size:14px;outline:none}
+  input{flex:1;min-width:180px}
+  .wrap{max-width:1100px;margin:14px auto 40px;padding:0 16px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:11px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--sub);font-size:12px;font-weight:700;cursor:pointer;user-select:none;white-space:nowrap;position:sticky;top:0;background:var(--bg)}
+  th:hover{color:var(--accent)}
+  tr:hover td{background:rgba(148,163,184,.06)}
+  .corp{font-weight:700}
+  .code{color:var(--sub);font-size:12px;margin-left:4px}
+  .amt{font-weight:800;color:var(--accent);white-space:nowrap;text-align:right}
+  .ratio{white-space:nowrap;font-weight:700}
+  .content{max-width:340px}
+  .party{color:var(--sub);max-width:220px}
+  .date{color:var(--sub);white-space:nowrap;font-size:13px}
+  a.dart{color:var(--chip);text-decoration:none;font-size:12px;border:1px solid var(--line);border-radius:6px;padding:2px 6px}
+  a.dart:hover{border-color:var(--chip)}
+  .num{text-align:right}
+  .empty{text-align:center;color:var(--sub);padding:40px}
+  footer{max-width:1100px;margin:0 auto 30px;padding:0 16px;color:var(--sub);font-size:12px;line-height:1.6}
+  @media(max-width:640px){ .content{max-width:160px} .party,.hide-m{display:none} h1{font-size:19px} }
+</style>
+</head>
+<body>
+<header>
+  <h1>📑 수주·공급계약 보드</h1>
+  <div class="meta" id="meta">불러오는 중…</div>
+</header>
+<div class="bar">
+  <input id="q" placeholder="종목·계약내용·상대 검색">
+  <select id="sort">
+    <option value="pub_date">최신순</option>
+    <option value="amount">금액순</option>
+    <option value="ratio">매출대비순</option>
+  </select>
+</div>
+<div class="wrap">
+  <table>
+    <thead><tr>
+      <th data-k="pub_date">공시일</th>
+      <th data-k="corp_name">종목</th>
+      <th data-k="content">계약내용</th>
+      <th data-k="amount" class="num">금액</th>
+      <th data-k="ratio" class="num">매출대비</th>
+      <th data-k="party" class="hide-m">계약상대</th>
+      <th class="hide-m">기간</th>
+      <th></th>
+    </tr></thead>
+    <tbody id="tb"><tr><td class="empty" colspan="8">불러오는 중…</td></tr></tbody>
+  </table>
+</div>
+<footer>
+  데이터 출처: 금융감독원 DART 전자공시(공개정보). 투자 참고용이며 정확성을 보장하지 않습니다.<br>
+  매출대비 = 계약금액 ÷ 최근 매출액. 정정·취소 공시가 반영되지 않을 수 있습니다.
+</footer>
+<script>
+let DATA=[], sortKey='pub_date', dir=-1;
+const tb=document.getElementById('tb'), q=document.getElementById('q'), sortSel=document.getElementById('sort');
+
+function ratioColor(r){ if(r==null) return 'var(--sub)'; if(r>=100) return 'var(--up)'; if(r>=30) return 'var(--accent)'; return 'var(--sub)'; }
+function esc(s){ return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+function render(){
+  const term=q.value.trim().toLowerCase();
+  let rows=DATA.filter(d=>!term || (d.corp_name+d.content+d.party).toLowerCase().includes(term));
+  rows.sort((a,b)=>{
+    let av=a[sortKey], bv=b[sortKey];
+    if(sortKey==='corp_name'||sortKey==='content'||sortKey==='party'){ av=av||''; bv=bv||''; return dir*(av<bv?-1:av>bv?1:0); }
+    av=av==null?-Infinity:av; bv=bv==null?-Infinity:bv; return dir*(av-bv);
+  });
+  if(!rows.length){ tb.innerHTML='<tr><td class="empty" colspan="8">결과 없음</td></tr>'; return; }
+  tb.innerHTML=rows.map(d=>`<tr>
+    <td class="date">${d.pub_date}</td>
+    <td><span class="corp">${esc(d.corp_name)}</span>${d.stock_code?`<span class="code">${d.stock_code}</span>`:''}</td>
+    <td class="content">${esc(d.content)}</td>
+    <td class="amt">${d.amount_str}</td>
+    <td class="ratio num" style="color:${ratioColor(d.ratio)}">${d.ratio!=null?d.ratio+'%':'-'}</td>
+    <td class="party hide-m">${esc(d.party)}</td>
+    <td class="date hide-m">${esc(d.period)}</td>
+    <td>${d.url?`<a class="dart" href="${d.url}" target="_blank" rel="noreferrer">DART</a>`:''}</td>
+  </tr>`).join('');
+}
+
+document.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{
+  const k=th.dataset.k;
+  if(sortKey===k) dir=-dir; else { sortKey=k; dir=(k==='corp_name'||k==='content'||k==='party')?1:-1; }
+  sortSel.value=['pub_date','amount','ratio'].includes(k)?k:sortSel.value;
+  render();
+});
+sortSel.onchange=()=>{ sortKey=sortSel.value; dir=-1; render(); };
+q.oninput=render;
+
+fetch('data/contracts.json?_='+Date.now()).then(r=>r.json()).then(j=>{
+  DATA=j.items;
+  document.getElementById('meta').textContent=`최근 ${j.days}일 · ${j.count}건 · ${j.updated_at} 기준`;
+  render();
+}).catch(e=>{ tb.innerHTML='<tr><td class="empty" colspan="8">데이터 로드 실패</td></tr>'; });
+</script>
+</body>
+</html>
