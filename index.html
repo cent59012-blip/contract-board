@@ -108,6 +108,15 @@ let DB={}, tab='contracts', sortKey='pub_date', dir=-1;
 const tb=document.getElementById('tb'), th=document.getElementById('th'), q=document.getElementById('q'),
       sortSel=document.getElementById('sort'), daySel=document.getElementById('day');
 
+// 하루 단위 클릭이 아닌, 기간 단위 조회를 위해 옵션 고정 (탭 전환 시에도 유지되도록 최초 1회만 설정)
+daySel.innerHTML = `
+  <option value="3">최근 3일</option>
+  <option value="7" selected>최근 1주일</option>
+  <option value="14">최근 2주일</option>
+  <option value="30">최근 1개월</option>
+  <option value="90">전체 (90일)</option>
+`;
+
 function esc(s){ return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 function corpTd(d){ return `<td><span class="corp">${esc(d.corp_name)}</span>${d.stock_code?`<span class="code">${d.stock_code}</span>`:''}${d.corrected?`<span class="corr">정정</span>`:''}</td>`; }
 function dartTd(d){ return `<td>${d.url?`<a class="dart" href="${d.url}" target="_blank" rel="noreferrer">DART</a>`:''}</td>`; }
@@ -119,15 +128,6 @@ function buildControls(){
   th.querySelectorAll('th[data-k]').forEach(el=>{ if(!el.dataset.k) return; el.onclick=()=>{
     const k=el.dataset.k; if(sortKey===k) dir=-dir; else {sortKey=k; dir=(k==='corp_name')?1:-1;} sync(); render(); }; });
   sortSel.innerHTML=CFG[tab].sorts.map(s=>`<option value="${s[0]}">${s[1]}</option>`).join('');
-  
-  // 하루 단위 클릭이 아닌, 기간 단위 조회를 위해 옵션 고정
-  daySel.innerHTML = `
-    <option value="3">최근 3일</option>
-    <option value="7" selected>최근 1주일</option>
-    <option value="14">최근 2주일</option>
-    <option value="30">최근 1개월</option>
-    <option value="90">전체 (90일)</option>
-  `;
   sortKey='pub_date'; dir=-1; sync();
 }
 function sync(){ if(CFG[tab].sorts.some(s=>s[0]===sortKey)) sortSel.value=sortKey; }
