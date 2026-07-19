@@ -4,40 +4,296 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>기업 공시 보드 — 수주·실적·시설투자</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{ --bg:#0f172a; --card:#1e293b; --line:#334155; --txt:#e2e8f0; --sub:#94a3b8; --up:#f43f5e; --dn:#3b82f6; --accent:#38bdf8; --chip:#0ea5e9; }
-  @media (prefers-color-scheme: light){ :root{ --bg:#f8fafc; --card:#fff; --line:#e2e8f0; --txt:#0f172a; --sub:#64748b; --up:#e11d48; --dn:#2563eb; --accent:#0284c7; --chip:#0284c7;} }
-  *{box-sizing:border-box}
-  body{margin:0;font-family:-apple-system,"Malgun Gothic","Apple SD Gothic Neo",sans-serif;background:var(--bg);color:var(--txt);}
-  header{padding:20px 16px 6px;max-width:1100px;margin:0 auto;}
-  h1{margin:0;font-size:21px;font-weight:800;letter-spacing:-.5px}
-  .meta{color:var(--sub);font-size:13px;margin-top:4px}
-  .tabs{max-width:1100px;margin:12px auto 0;padding:0 16px;display:flex;gap:8px}
-  .tab{background:var(--card);border:1px solid var(--line);color:var(--sub);border-radius:999px;padding:8px 16px;font-size:14px;font-weight:700;cursor:pointer}
-  .tab.on{background:var(--accent);color:#04222f;border-color:var(--accent)}
-  .bar{max-width:1100px;margin:10px auto 0;padding:0 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-  input,select{background:var(--card);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:9px 12px;font-size:14px;outline:none}
-  input{flex:1;min-width:160px}
-  .wrap{max-width:1100px;margin:14px auto 40px;padding:0 16px;overflow-x:auto}
-  table{width:100%;border-collapse:collapse;font-size:14px}
-  th,td{padding:11px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
-  th{color:var(--sub);font-size:12px;font-weight:700;cursor:pointer;user-select:none;white-space:nowrap;position:sticky;top:0;background:var(--bg)}
-  th:hover{color:var(--accent)}
-  tr:hover td{background:rgba(148,163,184,.06)}
-  .corp{font-weight:700}
-  .code{color:var(--sub);font-size:12px;margin-left:4px}
-  .corr{margin-left:5px;font-size:11px;font-weight:700;color:#f59e0b;border:1px solid #f59e0b55;border-radius:5px;padding:1px 4px}
-  .amt{font-weight:800;color:var(--accent);white-space:nowrap;text-align:right}
-  .num{text-align:right;white-space:nowrap}
-  .content{max-width:320px}
-  .sub{color:var(--sub)}
-  .date{color:var(--sub);white-space:nowrap;font-size:13px}
-  a.dart{color:var(--chip);text-decoration:none;font-size:12px;border:1px solid var(--line);border-radius:6px;padding:2px 6px}
-  a.dart:hover{border-color:var(--chip)}
-  .empty{text-align:center;color:var(--sub);padding:40px}
-  .up{color:var(--up);font-weight:700}.dn{color:var(--dn);font-weight:700}
-  footer{max-width:1100px;margin:0 auto 30px;padding:0 16px;color:var(--sub);font-size:12px;line-height:1.6}
-  @media(max-width:640px){ .content{max-width:150px} .hide-m{display:none} h1{font-size:18px} }
+  :root {
+    --bg: #0a0a0a;
+    --bg-grad: radial-gradient(circle at 50% 0%, #171717, #0a0a0a 80%);
+    --card: #141414;
+    --card-hover: #1f1f1f;
+    --line: #262626;
+    --txt: #f3f4f6;
+    --sub: #a1a1aa;
+    --up: #f43f5e;
+    --dn: #3b82f6;
+    --amber: #f59e0b;
+    --accent: #f8fafc;
+    --accent-bg: #f8fafc;
+    --accent-txt: #0a0a0a;
+    --chip: #27272a;
+    --chip-hover: #3f3f46;
+    --border-radius: 12px;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f8fafc;
+      --bg-grad: radial-gradient(circle at 50% 0%, #ffffff, #f1f5f9 80%);
+      --card: #ffffff;
+      --card-hover: #f8fafc;
+      --line: #e2e8f0;
+      --txt: #0f172a;
+      --sub: #64748b;
+      --up: #e11d48;
+      --dn: #2563eb;
+      --amber: #d97706;
+      --accent: #0f172a;
+      --accent-bg: #0f172a;
+      --accent-txt: #ffffff;
+      --chip: #f1f5f9;
+      --chip-hover: #e2e8f0;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, "Malgun Gothic", sans-serif;
+    background: var(--bg);
+    background-image: var(--bg-grad);
+    background-attachment: fixed;
+    color: var(--txt);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    padding: 40px 20px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+  .meta {
+    color: var(--sub);
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .controls-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg);
+    padding-top: 10px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .tab {
+    background: var(--chip);
+    border: 1px solid transparent;
+    color: var(--sub);
+    border-radius: 999px;
+    padding: 10px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .tab:hover {
+    background: var(--chip-hover);
+    color: var(--txt);
+  }
+  .tab.on {
+    background: var(--accent-bg);
+    color: var(--accent-txt);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .bar {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  input, select {
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--txt);
+    border-radius: var(--border-radius);
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+  input:focus, select:focus {
+    border-color: var(--sub);
+    box-shadow: 0 0 0 2px rgba(100,116,139,0.2);
+  }
+  input {
+    flex: 1;
+    min-width: 200px;
+  }
+  .wrap {
+    max-width: 1200px;
+    margin: 0 auto 60px;
+    padding: 20px 20px;
+    overflow-x: auto;
+  }
+  .wrap table {
+    animation: fadeIn 0.4s ease-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 15px;
+  }
+  th, td {
+    padding: 16px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  th {
+    color: var(--sub);
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  th:hover {
+    color: var(--accent);
+  }
+  tr {
+    transition: background-color 0.15s ease;
+  }
+  tr:hover td {
+    background-color: var(--card-hover);
+  }
+  .corp {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--txt);
+  }
+  .code {
+    color: var(--sub);
+    font-size: 13px;
+    font-weight: 500;
+    background: var(--chip);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .badge.amber {
+    color: var(--amber);
+    background: color-mix(in srgb, var(--amber) 15%, transparent);
+    border: 1px solid color-mix(in srgb, var(--amber) 30%, transparent);
+  }
+  .badge.up {
+    color: var(--up);
+    background: color-mix(in srgb, var(--up) 15%, transparent);
+  }
+  .badge.dn {
+    color: var(--dn);
+    background: color-mix(in srgb, var(--dn) 15%, transparent);
+  }
+  .amt {
+    font-weight: 700;
+    white-space: nowrap;
+    text-align: right;
+  }
+  .num {
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .content {
+    max-width: 320px;
+    line-height: 1.5;
+    color: var(--txt);
+  }
+  .sub {
+    color: var(--sub);
+  }
+  .date {
+    color: var(--sub);
+    white-space: nowrap;
+    font-size: 14px;
+  }
+  a.dart {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--txt);
+    background: var(--chip);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 4px 8px;
+    transition: all 0.2s;
+  }
+  a.dart:hover {
+    background: var(--chip-hover);
+    border-color: var(--sub);
+  }
+  .empty {
+    text-align: center;
+    color: var(--sub);
+    padding: 60px 20px;
+    font-size: 15px;
+  }
+  .up { color: var(--up); font-weight: 600; }
+  .dn { color: var(--dn); font-weight: 600; }
+  footer {
+    max-width: 1200px;
+    margin: 0 auto 40px;
+    padding: 0 20px;
+    color: var(--sub);
+    font-size: 13px;
+    line-height: 1.6;
+    text-align: center;
+  }
+  .progress-bg {
+    width: 60px;
+    height: 4px;
+    background: var(--line);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 4px;
+    display: inline-block;
+  }
+  .progress-bar {
+    height: 100%;
+    border-radius: 2px;
+  }
+  @media(max-width:768px){ 
+    .content{max-width: 180px} 
+    .hide-m{display:none} 
+    h1{font-size: 24px}
+    th, td { padding: 12px 8px; }
+  }
 </style>
 </head>
 <body>
@@ -45,18 +301,20 @@
   <h1>📊 기업 공시 보드</h1>
   <div class="meta" id="meta">불러오는 중…</div>
 </header>
-<div class="tabs" id="tabs">
-  <button class="tab on" data-t="contracts">수주·공급계약</button>
-  <button class="tab" data-t="earnings">실적</button>
-  <button class="tab" data-t="investments">신규시설투자</button>
-</div>
-<div class="bar">
-  <select id="day"></select>
-  <input id="q" placeholder="종목·내용 검색 (전체 기간)">
-  <select id="sort"></select>
+<div class="controls-wrapper">
+  <div class="tabs" id="tabs">
+    <button class="tab on" data-t="contracts">수주·공급계약</button>
+    <button class="tab" data-t="earnings">실적</button>
+    <button class="tab" data-t="investments">신규시설투자</button>
+  </div>
+  <div class="bar">
+    <select id="day"></select>
+    <input id="q" placeholder="종목·내용 검색 (전체 기간)">
+    <select id="sort"></select>
+  </div>
 </div>
 <div class="wrap"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div>
-<div class="wrap" id="ad-slot" style="min-height:0"></div>
+<div class="wrap" id="ad-slot" style="min-height:0; padding-top:0;"></div>
 <footer>
   데이터 출처: 금융감독원 DART 전자공시(공개정보). 투자 참고용이며 정확성을 보장하지 않습니다.<br>
   매출대비 = 계약/투자금액 ÷ 최근 매출액. 실적은 연결(연결재무제표) 우선 표시. 정정·취소가 반영되지 않을 수 있습니다.
@@ -76,39 +334,10 @@ if (ADSENSE_PUB) {
   (window.adsbygoogle=window.adsbygoogle||[]).push({});
 }
 
-const CFG = {
-  contracts: {
-    label:'수주·공급계약',
-    cols:[['공시일','pub_date'],['종목','corp_name'],['계약내용','content'],['금액','amount','num'],['매출대비','ratio','num'],['계약상대','party','hide-m'],['기간','period','hide-m date'],['','']],
-    sorts:[['pub_date','최신순'],['amount','금액순'],['ratio','매출대비순']],
-    row:d=>`<td class="date">${d.pub_date}</td>${corpTd(d)}<td class="content">${esc(d.content)}</td>
-      <td class="amt">${d.amount_str}</td>${ratioTd(d.ratio)}
-      <td class="sub hide-m">${esc(d.party)}</td><td class="date hide-m">${esc(d.period)}</td>${dartTd(d)}`
-  },
-  earnings: {
-    label:'실적',
-    cols:[['공시일','pub_date'],['종목','corp_name'],['기간','period'],['매출','revenue_str','num'],['영업이익','op','num'],['순이익','ni_str','num'],['구분','fs_div','hide-m'],['','']],
-    sorts:[['pub_date','최신순'],['op','영업이익순'],['yoy_op','영업이익 YoY순']],
-    row:d=>`<td class="date">${d.pub_date}</td>${corpTd(d)}<td class="sub">${d.period}</td>
-      <td class="num">${d.revenue_str}</td>
-      <td class="num">${d.op_str}${yoyChip(d.yoy_op)}</td>
-      <td class="num">${d.ni_str}</td><td class="sub hide-m">${d.fs_div}</td>${dartTd(d)}`
-  },
-  investments: {
-    label:'신규시설투자',
-    cols:[['공시일','pub_date'],['종목','corp_name'],['투자내용','content'],['투자금액','amount','num'],['매출대비','ratio','num'],['목적·위치','note','hide-m'],['완료예정','period','hide-m date'],['','']],
-    sorts:[['pub_date','최신순'],['amount','금액순'],['ratio','매출대비순']],
-    row:d=>`<td class="date">${d.pub_date}</td>${corpTd(d)}<td class="content">${esc(d.content)}</td>
-      <td class="amt">${d.amount_str}</td>${ratioTd(d.ratio)}
-      <td class="sub hide-m">${esc(d.note)}</td><td class="date hide-m">${esc(d.period)}</td>${dartTd(d)}`
-  }
-};
-
 let DB={}, tab='contracts', sortKey='pub_date', dir=-1;
 const tb=document.getElementById('tb'), th=document.getElementById('th'), q=document.getElementById('q'),
       sortSel=document.getElementById('sort'), daySel=document.getElementById('day');
 
-// 하루 단위 클릭이 아닌, 기간 단위 조회를 위해 옵션 고정 (탭 전환 시에도 유지되도록 최초 1회만 설정)
 daySel.innerHTML = `
   <option value="3">최근 3일</option>
   <option value="7" selected>최근 1주일</option>
@@ -118,10 +347,66 @@ daySel.innerHTML = `
 `;
 
 function esc(s){ return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
-function corpTd(d){ return `<td><span class="corp">${esc(d.corp_name)}</span>${d.stock_code?`<span class="code">${d.stock_code}</span>`:''}${d.corrected?`<span class="corr">정정</span>`:''}</td>`; }
-function dartTd(d){ return `<td>${d.url?`<a class="dart" href="${d.url}" target="_blank" rel="noreferrer">DART</a>`:''}</td>`; }
-function ratioTd(r){ const c=r==null?'sub':r>=100?'up':r>=30?'':'sub'; return `<td class="num ${c}">${r!=null?r+'%':'-'}</td>`; }
-function yoyChip(v){ if(v==null) return ''; const c=v>=0?'up':'dn'; const s=v>=0?'+':''; return ` <span class="${c}" style="font-size:12px">${s}${v}%</span>`; }
+function corpTd(d){ 
+  return `<td><div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+    <span class="corp">${esc(d.corp_name)}</span>
+    ${d.stock_code?`<span class="code">${d.stock_code}</span>`:''}
+    ${d.corrected?`<span class="badge amber">정정</span>`:''}
+  </div></td>`; 
+}
+function dartTd(d){ 
+  return `<td>${d.url?`<a class="dart" href="${d.url}" target="_blank" rel="noreferrer">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+    DART</a>`:''}</td>`; 
+}
+function ratioTd(r){ 
+  if(r==null) return `<td class="num sub">-</td>`;
+  const c = r>=100 ? 'up' : r>=30 ? '' : 'sub';
+  const colorVar = r>=100 ? 'var(--up)' : r>=30 ? 'var(--accent-bg)' : 'var(--sub)';
+  const width = Math.min(r, 100);
+  return `<td class="num ${c}">
+    <div style="display:flex; flex-direction:column; align-items:flex-end;">
+      <span>${r}%</span>
+      <div class="progress-bg">
+        <div class="progress-bar" style="width:${width}%; background:${colorVar}"></div>
+      </div>
+    </div>
+  </td>`; 
+}
+function yoyChip(v){ 
+  if(v==null) return ''; 
+  const c = v>=0 ? 'up' : 'dn'; 
+  const s = v>=0 ? '+' : ''; 
+  return `<span class="badge ${c}" style="margin-left:6px">${s}${v}%</span>`; 
+}
+
+const CFG = {
+  contracts: {
+    label:'수주·공급계약',
+    cols:[['공시일','pub_date'],['종목','corp_name'],['계약내용','content'],['금액','amount','num'],['매출대비','ratio','num'],['계약상대','party','hide-m'],['기간','period','hide-m date'],['','']],
+    sorts:[['pub_date','최신순'],['amount','금액순'],['ratio','매출대비순']],
+    row:d=>`<td class="date">${d.pub_date}</td>${corpTd(d)}<td class="content"><div style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;" title="${esc(d.content)}">${esc(d.content)}</div></td>
+      <td class="amt">${d.amount_str}</td>${ratioTd(d.ratio)}
+      <td class="sub hide-m">${esc(d.party)}</td><td class="date hide-m">${esc(d.period)}</td>${dartTd(d)}`
+  },
+  earnings: {
+    label:'실적',
+    cols:[['공시일','pub_date'],['종목','corp_name'],['기간','period'],['매출','revenue_str','num'],['영업이익','op','num'],['순이익','ni_str','num'],['구분','fs_div','hide-m'],['','']],
+    sorts:[['pub_date','최신순'],['op','영업이익순'],['yoy_op','영업이익 YoY순']],
+    row:d=>`<td class="date">${d.pub_date}</td>${corpTd(d)}<td class="sub">${d.period}</td>
+      <td class="num">${d.revenue_str}</td>
+      <td class="num"><div style="display:flex; align-items:center; justify-content:flex-end">${d.op_str}${yoyChip(d.yoy_op)}</div></td>
+      <td class="num">${d.ni_str}</td><td class="sub hide-m">${d.fs_div}</td>${dartTd(d)}`
+  },
+  investments: {
+    label:'신규시설투자',
+    cols:[['공시일','pub_date'],['종목','corp_name'],['투자내용','content'],['투자금액','amount','num'],['매출대비','ratio','num'],['목적·위치','note','hide-m'],['완료예정','period','hide-m date'],['','']],
+    sorts:[['pub_date','최신순'],['amount','금액순'],['ratio','매출대비순']],
+    row:d=>`<td class="date">${d.pub_date}</td>${corpTd(d)}<td class="content"><div style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;" title="${esc(d.content)}">${esc(d.content)}</div></td>
+      <td class="amt">${d.amount_str}</td>${ratioTd(d.ratio)}
+      <td class="sub hide-m">${esc(d.note)}</td><td class="date hide-m">${esc(d.period)}</td>${dartTd(d)}`
+  }
+};
 
 function buildControls(){
   th.innerHTML='<tr>'+CFG[tab].cols.map(c=>`<th data-k="${c[1]||''}" class="${c[2]||''}">${c[0]}</th>`).join('')+'</tr>';
@@ -160,6 +445,15 @@ function render(){
     if(sortKey==='corp_name') return dir*((av||'')<(bv||'')?-1:(av||'')>(bv||'')?1:0);
     av=av==null?-Infinity:av; bv=bv==null?-Infinity:bv; return dir*(av-bv); });
   const span=CFG[tab].cols.length;
+  
+  // 다시 그릴 때 애니메이션 재적용을 위한 트릭
+  const oldTable = document.querySelector('.wrap table');
+  if(oldTable) {
+    oldTable.style.animation = 'none';
+    oldTable.offsetHeight; 
+    oldTable.style.animation = 'fadeIn 0.4s ease-out';
+  }
+
   tb.innerHTML = rows.length ? rows.map(d=>`<tr>${CFG[tab].row(d)}</tr>`).join('')
     : `<tr><td class="empty" colspan="${span}">해당 없음</td></tr>`;
 }
