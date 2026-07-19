@@ -52,7 +52,7 @@
 </div>
 <div class="bar">
   <select id="day"></select>
-  <input id="q" placeholder="종목·내용 검색 (전체 날짜)">
+  <input id="q" placeholder="종목·내용 검색 (전체 기간)">
   <select id="sort"></select>
 </div>
 <div class="wrap"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div>
@@ -119,17 +119,43 @@ function buildControls(){
   th.querySelectorAll('th[data-k]').forEach(el=>{ if(!el.dataset.k) return; el.onclick=()=>{
     const k=el.dataset.k; if(sortKey===k) dir=-dir; else {sortKey=k; dir=(k==='corp_name')?1:-1;} sync(); render(); }; });
   sortSel.innerHTML=CFG[tab].sorts.map(s=>`<option value="${s[0]}">${s[1]}</option>`).join('');
-  const days=[...new Set((DB[tab]||[]).map(d=>d.pub_date))].sort().reverse();
-  daySel.innerHTML=days.map(d=>`<option value="${d}">${d} (${DB[tab].filter(x=>x.pub_date===d).length})</option>`).join('');
+  
+  // 하루 단위 클릭이 아닌, 기간 단위 조회를 위해 옵션 고정
+  daySel.innerHTML = `
+    <option value="3">최근 3일</option>
+    <option value="7" selected>최근 1주일</option>
+    <option value="14">최근 2주일</option>
+    <option value="30">최근 1개월</option>
+    <option value="90">전체 (90일)</option>
+  `;
   sortKey='pub_date'; dir=-1; sync();
 }
 function sync(){ if(CFG[tab].sorts.some(s=>s[0]===sortKey)) sortSel.value=sortKey; }
 
 function render(){
   const arr=DB[tab]||[], term=q.value.trim().toLowerCase();
-  let rows = term
-    ? arr.filter(d=>((d.corp_name||'')+(d.content||'')+(d.party||'')+(d.note||'')).toLowerCase().includes(term))
-    : arr.filter(d=>d.pub_date===daySel.value);
+  let rows = [];
+  
+  if (term) {
+    // 검색어가 있으면 전체 기간 대상 검색
+    rows = arr.filter(d=>((d.corp_name||'')+(d.content||'')+(d.party||'')+(d.note||'')).toLowerCase().includes(term));
+  } else {
+    // 검색어가 없으면 선택한 기간 필터링 적용 (데이터셋의 가장 최신 공시일 기준)
+    if (arr.length > 0) {
+      const dates = arr.map(d => d.pub_date).filter(Boolean);
+      if (dates.length > 0) {
+        const maxDateStr = dates.reduce((a, b) => a > b ? a : b);
+        const maxDate = new Date(maxDateStr);
+        const limitDays = parseInt(daySel.value) || 7;
+        
+        const cutoffDate = new Date(maxDate);
+        cutoffDate.setDate(cutoffDate.getDate() - limitDays + 1);
+        const cutoffStr = cutoffDate.toISOString().slice(0, 10);
+        
+        rows = arr.filter(d => d.pub_date >= cutoffStr);
+      }
+    }
+  }
   rows.sort((a,b)=>{ let av=a[sortKey],bv=b[sortKey];
     if(sortKey==='corp_name') return dir*((av||'')<(bv||'')?-1:(av||'')>(bv||'')?1:0);
     av=av==null?-Infinity:av; bv=bv==null?-Infinity:bv; return dir*(av-bv); });
