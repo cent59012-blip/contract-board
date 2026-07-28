@@ -8,42 +8,25 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+  /* 밝은 테마 고정 (OS 다크모드에서도 엑셀처럼 흰 배경 유지) */
   :root {
-    --bg: #0a0a0a;
-    --bg-grad: radial-gradient(circle at 50% 0%, #171717, #0a0a0a 80%);
-    --card: #141414;
-    --card-hover: #1f1f1f;
-    --line: #262626;
-    --txt: #f3f4f6;
-    --sub: #a1a1aa;
-    --up: #f43f5e;
-    --dn: #3b82f6;
-    --amber: #f59e0b;
-    --accent: #f8fafc;
-    --accent-bg: #f8fafc;
-    --accent-txt: #0a0a0a;
-    --chip: #27272a;
-    --chip-hover: #3f3f46;
+    color-scheme: light;
+    --bg: #f8fafc;
+    --bg-grad: radial-gradient(circle at 50% 0%, #ffffff, #f1f5f9 80%);
+    --card: #ffffff;
+    --card-hover: #f8fafc;
+    --line: #e2e8f0;
+    --txt: #0f172a;
+    --sub: #64748b;
+    --up: #e11d48;
+    --dn: #2563eb;
+    --amber: #d97706;
+    --accent: #0f172a;
+    --accent-bg: #0f172a;
+    --accent-txt: #ffffff;
+    --chip: #f1f5f9;
+    --chip-hover: #e2e8f0;
     --border-radius: 12px;
-  }
-  @media (prefers-color-scheme: light) {
-    :root {
-      --bg: #f8fafc;
-      --bg-grad: radial-gradient(circle at 50% 0%, #ffffff, #f1f5f9 80%);
-      --card: #ffffff;
-      --card-hover: #f8fafc;
-      --line: #e2e8f0;
-      --txt: #0f172a;
-      --sub: #64748b;
-      --up: #e11d48;
-      --dn: #2563eb;
-      --amber: #d97706;
-      --accent: #0f172a;
-      --accent-bg: #0f172a;
-      --accent-txt: #ffffff;
-      --chip: #f1f5f9;
-      --chip-hover: #e2e8f0;
-    }
   }
   * { box-sizing: border-box; }
   body {
@@ -290,6 +273,18 @@
   }
   /* ── 엑셀형 시트(실적 탭): 헤더·좌측 2열 고정 ── */
   .wrap.sheet {
+    /* 엑셀 느낌 유지를 위해 시트 안은 다크모드에서도 항상 흰 배경 고정 */
+    --card: #ffffff;
+    --card-hover: #eef4fb;
+    --line: #d4dbe3;
+    --txt: #1f2937;
+    --sub: #64748b;
+    --chip: #eef2f6;
+    --up: #d1384c;
+    --dn: #2563eb;
+    background: #ffffff;
+    color: #1f2937;
+    border: 1px solid #d4dbe3;
     max-width: calc(100vw - 24px);
     margin: 0 auto 60px;
     max-height: calc(100vh - 210px);
