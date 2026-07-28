@@ -290,14 +290,16 @@
   }
   /* ── 엑셀형 시트(실적 탭): 헤더·좌측 2열 고정 ── */
   .wrap.sheet {
+    max-width: calc(100vw - 24px);
+    margin: 0 auto 60px;
     max-height: calc(100vh - 210px);
     overflow: auto;
     padding: 0;              /* sticky 좌측 고정열이 좌우 패딩 위로 비쳐 보이는 것 방지 */
     border-radius: var(--border-radius);
   }
-  .sheet table { font-size: 13px; }
+  .sheet table { font-size: 12.5px; }
   .sheet th, .sheet td {
-    padding: 6px 10px;
+    padding: 6px 7px;
     border-bottom: 1px solid var(--line);
     border-right: 1px solid var(--line);
     white-space: nowrap;
@@ -318,8 +320,8 @@
   .sheet thead tr:nth-child(1) th { top: 0; }
   .sheet thead tr:nth-child(2) th { top: 29px; }
   .sheet .fx1, .sheet .fx2 { position: sticky; background: var(--card); z-index: 2; }
-  .sheet .fx1 { left: 0; width: 96px; min-width: 96px; }
-  .sheet .fx2 { left: 96px; box-shadow: 1px 0 0 var(--line); }
+  .sheet .fx1 { left: 0; width: 86px; min-width: 86px; }
+  .sheet .fx2 { left: 86px; box-shadow: 1px 0 0 var(--line); }
   .sheet thead .fx1, .sheet thead .fx2 { z-index: 4; background: var(--chip); }
   .sheet tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--sub) 6%, transparent); }
   .sheet tbody tr:nth-child(even) .fx1, .sheet tbody tr:nth-child(even) .fx2 {
@@ -330,6 +332,11 @@
   .sheet .code { font-size: 11px; }
   .sheet .g { border-left: 2px solid var(--line); }
   .pct { text-align: right; font-variant-numeric: tabular-nums; }
+  /* 시트 안의 등락 색은 한 톤 낮춰서(가독성) */
+  .sheet .pct.up { color: color-mix(in srgb, var(--up) 65%, var(--sub)); font-weight: 500; }
+  .sheet .pct.dn { color: color-mix(in srgb, var(--dn) 65%, var(--sub)); font-weight: 500; }
+  .sheet .corp { font-weight: 600; }
+  .sheet td { color: color-mix(in srgb, var(--txt) 85%, transparent); }
   @media(max-width:768px){
     .wrap.sheet { max-height: calc(100vh - 240px); }
     .sheet .fx1 { width: 84px; min-width: 84px; font-size: 11px; }
