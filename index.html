@@ -288,7 +288,52 @@
     height: 100%;
     border-radius: 2px;
   }
-  @media(max-width:768px){ 
+  /* ── 엑셀형 시트(실적 탭): 헤더·좌측 2열 고정 ── */
+  .wrap.sheet {
+    max-height: calc(100vh - 210px);
+    overflow: auto;
+    padding: 0;              /* sticky 좌측 고정열이 좌우 패딩 위로 비쳐 보이는 것 방지 */
+    border-radius: var(--border-radius);
+  }
+  .sheet table { font-size: 13px; }
+  .sheet th, .sheet td {
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  .sheet thead th {
+    position: sticky;
+    background: var(--chip);
+    color: var(--sub);
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 12px;
+    text-align: center;
+    z-index: 3;
+    height: 29px;
+    line-height: 16px;
+    box-shadow: inset 0 -1px 0 var(--line);
+  }
+  .sheet thead tr:nth-child(1) th { top: 0; }
+  .sheet thead tr:nth-child(2) th { top: 29px; }
+  .sheet .fx1, .sheet .fx2 { position: sticky; background: var(--card); z-index: 2; }
+  .sheet .fx1 { left: 0; width: 96px; min-width: 96px; }
+  .sheet .fx2 { left: 96px; box-shadow: 1px 0 0 var(--line); }
+  .sheet thead .fx1, .sheet thead .fx2 { z-index: 4; background: var(--chip); }
+  .sheet tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--sub) 6%, transparent); }
+  .sheet tbody tr:nth-child(even) .fx1, .sheet tbody tr:nth-child(even) .fx2 {
+    background: color-mix(in srgb, var(--sub) 6%, var(--card));
+  }
+  .sheet tbody tr:hover td { background: var(--card-hover); }
+  .sheet .corp { font-size: 13px; font-weight: 600; }
+  .sheet .code { font-size: 11px; }
+  .sheet .g { border-left: 2px solid var(--line); }
+  .pct { text-align: right; font-variant-numeric: tabular-nums; }
+  @media(max-width:768px){
+    .wrap.sheet { max-height: calc(100vh - 240px); }
+    .sheet .fx1 { width: 84px; min-width: 84px; font-size: 11px; }
+    .sheet .fx2 { left: 84px; }
     .content{max-width: 180px} 
     .hide-m{display:none} 
     h1{font-size: 24px}
@@ -317,7 +362,8 @@
 <div class="wrap" id="ad-slot" style="min-height:0; padding-top:0;"></div>
 <footer>
   데이터 출처: 금융감독원 DART 전자공시(공개정보). 투자 참고용이며 정확성을 보장하지 않습니다.<br>
-  매출대비 = 계약/투자금액 ÷ 최근 매출액. 실적은 연결(연결재무제표) 우선 표시. 정정·취소가 반영되지 않을 수 있습니다.
+  매출대비 = 계약/투자금액 ÷ 최근 매출액. 실적은 연결(연결재무제표) 우선 표시. 정정·취소가 반영되지 않을 수 있습니다.<br>
+  PER = 시가총액 ÷ 최근 4개 분기 순이익 합(연속 4개 분기가 확보된 종목만 표시, 적자는 미표시). 주가는 최근 거래일 종가.
 </footer>
 <script>
 /* ── 광고 설정 ── 애드센스 승인 후 아래 2개만 채우면 자동으로 광고가 뜹니다.
@@ -347,8 +393,13 @@ daySel.innerHTML = `
 `;
 
 function esc(s){ return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
-function corpTd(d){ 
-  return `<td><div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+function pctTd(v){
+  if(v==null) return `<td class="pct sub">-</td>`;
+  const c = v>0 ? 'up' : v<0 ? 'dn' : 'sub';
+  return `<td class="pct ${c}">${v>0?'+':''}${v.toFixed(1)}%</td>`;
+}
+function corpTd(d, cls){
+  return `<td class="${cls||''}"><div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
     <span class="corp">${esc(d.corp_name)}</span>
     ${d.stock_code?`<span class="code">${d.stock_code}</span>`:''}
     ${d.corrected?`<span class="badge amber">정정</span>`:''}
@@ -391,12 +442,34 @@ const CFG = {
   },
   earnings: {
     label:'실적',
-    cols:[['공시일','pub_date'],['종목','corp_name'],['기간','period'],['매출','revenue_str','num'],['영업이익','op','num'],['순이익','ni_str','num'],['구분','fs_div','hide-m'],['','']],
-    sorts:[['pub_date','최신순'],['op','영업이익순'],['yoy_op','영업이익 YoY순']],
-    row:d=>`<td class="date">${d.pub_date}</td>${corpTd(d)}<td class="sub">${d.period}</td>
-      <td class="num">${d.revenue_str}</td>
-      <td class="num"><div style="display:flex; align-items:center; justify-content:flex-end">${d.op_str}${yoyChip(d.yoy_op)}</div></td>
-      <td class="num">${d.ni_str}</td><td class="sub hide-m">${d.fs_div}</td>${dartTd(d)}`
+    sheet:true,
+    head:`<tr>
+      <th class="fx1" rowspan="2" data-k="pub_date">공시일</th>
+      <th class="fx2" rowspan="2" data-k="corp_name">종목</th>
+      <th rowspan="2" data-k="period">기간</th>
+      <th class="g" colspan="3">주가</th>
+      <th class="g" rowspan="2" data-k="per">PER</th>
+      <th class="g" colspan="3">매출</th>
+      <th class="g" colspan="3">영업이익</th>
+      <th class="g" colspan="3">순이익</th>
+      <th class="g" rowspan="2" data-k="fs_div">구분</th>
+      <th rowspan="2">공시</th></tr>
+    <tr>
+      <th class="g" data-k="price">종가</th><th data-k="change_rate">등락률</th><th data-k="market_cap">시가총액</th>
+      <th class="g" data-k="revenue">금액</th><th data-k="qoq_rev">전분기</th><th data-k="yoy_rev">전년동기</th>
+      <th class="g" data-k="op">금액</th><th data-k="qoq_op">전분기</th><th data-k="yoy_op">전년동기</th>
+      <th class="g" data-k="ni">금액</th><th data-k="qoq_ni">전분기</th><th data-k="yoy_ni">전년동기</th>
+    </tr>`,
+    ncol:18,
+    sorts:[['pub_date','최신순'],['op','영업이익순'],['yoy_op','영업이익 전년동기순'],['qoq_op','영업이익 전분기순'],['per','PER 낮은순'],['market_cap','시가총액순']],
+    row:d=>`<td class="fx1 date">${d.pub_date}</td>${corpTd(d,'fx2')}<td class="sub">${d.period}</td>
+      <td class="num g" title="${d.price_date||''} 종가">${d.price!=null?d.price.toLocaleString():'-'}</td>${pctTd(d.change_rate)}
+      <td class="num">${d.market_cap_str||'-'}</td>
+      <td class="num g">${d.per!=null?d.per.toFixed(1):'-'}</td>
+      <td class="num g">${d.revenue_str}</td>${pctTd(d.qoq_rev)}${pctTd(d.yoy_rev)}
+      <td class="num g">${d.op_str}</td>${pctTd(d.qoq_op)}${pctTd(d.yoy_op)}
+      <td class="num g">${d.ni_str}</td>${pctTd(d.qoq_ni)}${pctTd(d.yoy_ni)}
+      <td class="sub g">${d.fs_div}</td>${dartTd(d)}`
   },
   investments: {
     label:'신규시설투자',
@@ -409,7 +482,9 @@ const CFG = {
 };
 
 function buildControls(){
-  th.innerHTML='<tr>'+CFG[tab].cols.map(c=>`<th data-k="${c[1]||''}" class="${c[2]||''}">${c[0]}</th>`).join('')+'</tr>';
+  const cfg=CFG[tab];
+  th.innerHTML = cfg.head || ('<tr>'+cfg.cols.map(c=>`<th data-k="${c[1]||''}" class="${c[2]||''}">${c[0]}</th>`).join('')+'</tr>');
+  document.querySelector('.wrap').classList.toggle('sheet', !!cfg.sheet);
   th.querySelectorAll('th[data-k]').forEach(el=>{ if(!el.dataset.k) return; el.onclick=()=>{
     const k=el.dataset.k; if(sortKey===k) dir=-dir; else {sortKey=k; dir=(k==='corp_name')?1:-1;} sync(); render(); }; });
   sortSel.innerHTML=CFG[tab].sorts.map(s=>`<option value="${s[0]}">${s[1]}</option>`).join('');
@@ -441,10 +516,14 @@ function render(){
       }
     }
   }
+  const STR=['corp_name','period','fs_div','pub_date','price_date'];
   rows.sort((a,b)=>{ let av=a[sortKey],bv=b[sortKey];
-    if(sortKey==='corp_name') return dir*((av||'')<(bv||'')?-1:(av||'')>(bv||'')?1:0);
-    av=av==null?-Infinity:av; bv=bv==null?-Infinity:bv; return dir*(av-bv); });
-  const span=CFG[tab].cols.length;
+    if(STR.includes(sortKey)) return dir*((av||'')<(bv||'')?-1:(av||'')>(bv||'')?1:0);
+    if(av==null&&bv==null) return 0;
+    if(av==null) return 1;           // 값 없음은 정렬방향과 무관하게 맨 뒤
+    if(bv==null) return -1;
+    return dir*(av-bv); });
+  const span=CFG[tab].ncol||CFG[tab].cols.length;
   
   // 다시 그릴 때 애니메이션 재적용을 위한 트릭
   const oldTable = document.querySelector('.wrap table');
@@ -462,7 +541,7 @@ document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on')); b.classList.add('on');
   tab=b.dataset.t; q.value=''; buildControls(); render();
 });
-sortSel.onchange=()=>{ sortKey=sortSel.value; dir=-1; render(); };
+sortSel.onchange=()=>{ sortKey=sortSel.value; dir=(sortKey==='per')?1:-1; render(); };
 daySel.onchange=render; q.oninput=render;
 
 fetch('data/board.json?_='+Date.now()).then(r=>r.json()).then(j=>{
