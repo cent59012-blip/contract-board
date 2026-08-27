@@ -247,6 +247,24 @@
     padding: 60px 20px;
     font-size: 15px;
   }
+  .more-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 14px 0;
+  }
+  .more-wrap button {
+    background: var(--chip);
+    border: 1px solid var(--line);
+    color: var(--txt);
+    border-radius: 8px;
+    padding: 9px 16px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .more-wrap button:hover { background: var(--chip-hover); }
+  .more-count { color: var(--sub); font-size: 13px; }
   .up { color: var(--up); font-weight: 600; }
   .dn { color: var(--dn); font-weight: 600; }
   footer {
@@ -363,7 +381,7 @@
     <select id="sort"></select>
   </div>
 </div>
-<div class="wrap"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div>
+<div class="wrap"><table><thead id="th"></thead><tbody id="tb"></tbody></table><div id="more" class="more-wrap"></div></div>
 <div class="wrap" id="ad-slot" style="min-height:0; padding-top:0;"></div>
 <footer>
   데이터 출처: 금융감독원 DART 전자공시(공개정보). 투자 참고용이며 정확성을 보장하지 않습니다.<br>
@@ -385,9 +403,13 @@ if (ADSENSE_PUB) {
   (window.adsbygoogle=window.adsbygoogle||[]).push({});
 }
 
-let DB={}, tab='contracts', sortKey='pub_date', dir=-1;
+let DB={}, META={}, tab='contracts', sortKey='pub_date', dir=-1, visibleCount=100;
+const PAGE_SIZE=100;
+const DATA_FILES={contracts:'contracts.json', earnings:'earnings.json', investments:'investments.json'};
+const LOADS={};
 const tb=document.getElementById('tb'), th=document.getElementById('th'), q=document.getElementById('q'),
-      sortSel=document.getElementById('sort'), daySel=document.getElementById('day');
+      sortSel=document.getElementById('sort'), daySel=document.getElementById('day'),
+      more=document.getElementById('more');
 
 daySel.innerHTML = `
   <option value="3">최근 3일</option>
@@ -540,22 +562,52 @@ function render(){
     oldTable.style.animation = 'fadeIn 0.4s ease-out';
   }
 
-  tb.innerHTML = rows.length ? rows.map(d=>`<tr>${CFG[tab].row(d)}</tr>`).join('')
+  const shown = rows.slice(0, visibleCount);
+  tb.innerHTML = rows.length ? shown.map(d=>`<tr>${CFG[tab].row(d)}</tr>`).join('')
     : `<tr><td class="empty" colspan="${span}">해당 없음</td></tr>`;
+  if (rows.length > visibleCount) {
+    more.innerHTML = `<button type="button" id="more-btn">더 보기 (${visibleCount}/${rows.length})</button>`;
+    document.getElementById('more-btn').onclick=()=>{ visibleCount+=PAGE_SIZE; render(false); };
+  } else if (rows.length > PAGE_SIZE) {
+    more.innerHTML = `<span class="more-count">총 ${rows.length}건</span>`;
+  } else {
+    more.innerHTML = '';
+  }
 }
 
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on')); b.classList.add('on');
-  tab=b.dataset.t; q.value=''; buildControls(); render();
+  tab=b.dataset.t; q.value=''; visibleCount=PAGE_SIZE; buildControls();
+  loadTab(tab).then(render).catch(showLoadError);
 });
-sortSel.onchange=()=>{ sortKey=sortSel.value; dir=(sortKey==='per')?1:-1; render(); };
-daySel.onchange=render; q.oninput=render;
+sortSel.onchange=()=>{ sortKey=sortSel.value; dir=(sortKey==='per')?1:-1; visibleCount=PAGE_SIZE; render(); };
+daySel.onchange=()=>{ visibleCount=PAGE_SIZE; render(); }; q.oninput=()=>{ visibleCount=PAGE_SIZE; render(); };
 
-fetch('data/board.json?_='+Date.now()).then(r=>r.json()).then(j=>{
-  DB={contracts:j.contracts, earnings:j.earnings, investments:j.investments};
-  document.getElementById('meta').textContent=`최근 ${j.days}일 · 수주 ${j.contracts.length}·실적 ${j.earnings.length}·시설투자 ${j.investments.length} · ${j.updated_at} 기준`;
-  buildControls(); render();
-}).catch(e=>{ tb.innerHTML='<tr><td class="empty" colspan="8">데이터 로드 실패</td></tr>'; });
+function showLoadError(){
+  tb.innerHTML='<tr><td class="empty" colspan="18">데이터 로드 실패</td></tr>';
+  more.innerHTML='';
+}
+function loadTab(name){
+  if(DB[name]) return Promise.resolve(DB[name]);
+  if(LOADS[name]) return LOADS[name];
+  const version=encodeURIComponent(META.updated_at||'latest');
+  LOADS[name]=fetch(`data/${DATA_FILES[name]}?v=${version}`).then(r=>{
+    if(!r.ok) throw new Error(`data/${DATA_FILES[name]}: ${r.status}`);
+    return r.json();
+  }).then(rows=>{ DB[name]=rows; return rows; });
+  return LOADS[name];
+}
+
+fetch('data/board-meta.json?_='+Date.now(), {cache:'no-store'}).then(r=>{
+  if(!r.ok) throw new Error(`board-meta.json: ${r.status}`);
+  return r.json();
+}).then(meta=>{
+  META=meta;
+  const c=meta.counts||{};
+  document.getElementById('meta').textContent=`최근 ${meta.days}일 · 수주 ${c.contracts||0}·실적 ${c.earnings||0}·시설투자 ${c.investments||0} · ${meta.updated_at} 기준`;
+  buildControls();
+  return loadTab(tab);
+}).then(render).catch(showLoadError);
 </script>
 </body>
 </html>
